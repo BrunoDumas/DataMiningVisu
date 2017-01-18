@@ -1,0 +1,51 @@
+body {
+    background-color: rgb(23, 28, 35);
+}
+
+.tooltip {
+    color: black;
+    background-color: #fff;
+    padding: .5em;
+    text-shadow: #f5f5f5 0 1px 0;
+    border-radius: 5px;
+    border: black solid 1px;
+    opacity: 1;
+    position: absolute;
+}
+
+.hidden {
+    display: none;
+}
+
+#right, #left {
+    vertical-align: top;
+    margin: 0;
+    padding: 0;
+    display: inline-block;
+}
+
+#left svg {
+    display: block;
+}
+
+#selectHero, .image {
+    position: fixed;
+}
+
+text {
+    fill: white;
+}
+
+text.title {
+    font-size: 30;
+    font-family: Georgia, Arial;
+}
+
+text.percent {
+    font-size: 20;
+    font-family: Georgia, Arial;
+}
+
+.spellImage {
+    stroke: red;
+}
