@@ -34,6 +34,10 @@ var heroViewHeight = 100,
 	abilitiesList = {}
 	itemsList = {};
 
+var winRateScale = d3.scaleQuantile()
+	.range(['#a50026','#d73027','#f46d43','#fdae61','#fee08b','#d9ef8b','#a6d96a','#66bd63','#1a9850','#006837'])
+	.domain([0, 1]);
+
 var tooltip = d3.select('body').append('div')
 	.attr('class', 'hidden tooltip');
 
@@ -76,7 +80,12 @@ function heroDataReceived(error, items, spells) {
 	if (error){
 		display([], []);
 	} else {
-		display(items, spells);
+		var sortedItems = items.sort(function(a, b){ return b.total - a.total });
+		var selectedItems = sortedItems.slice(0, Math.min(sortedItems.length, 10));
+		selectedItems = selectedItems.sort(function(a, b){ return b.winfreq - a.winfreq });
+		selectedItems = selectedItems.slice(0, Math.min(selectedItems.length, 5));
+		// console.log(selectedItems);
+		display(selectedItems, spells);
 	}
 }
 
@@ -154,6 +163,7 @@ function initialDisplay() {
 }
 
 function display(items, spells) {
+	/* Capacities */
 	var spellsGs = capacitiesView.g.selectAll("g").data(spells);
 	var t = spellsGs.exit().transition().duration(500)
 	t.attr("transform", "translate(0, 1000)")
@@ -163,7 +173,6 @@ function display(items, spells) {
 		.attr("transform", function(d, i){ return "translate(-500, " + (i * 70 + 80) + ")" })
 	var imgs = gSpells.selectAll("image").data(function(d){ return d.items.split(";").filter(function(d2){ if (d2 != "?") return parseInt(d2)}); })
 		.enter().append("svg:image")
-			.classed("spellImage", true)
 			.attr('x', function(d, i){ return i * 66})
 			.attr('y', 0)
 			.attr('width', 64)
@@ -184,6 +193,38 @@ function display(items, spells) {
 
 
 	gSpells.transition().duration(500).attr("transform", function(d, i){ return "translate(0, " + (i * 70 + 80) + ")" })
+
+
+	/* Capacities */
+	var itemsGs = mainview.g.selectAll("g").data(items);
+	var t = itemsGs.exit().transition().duration(500)
+	t.attr("transform", "translate(0, 1000)")
+	t.remove();
+
+	var gItems = itemsGs.enter().append("g")
+		.attr("transform", function(d, i){ return "translate(1000, " + (i * 70 + 80) + ")" })
+	var imgs = gItems.selectAll("image").data(function(d){ console.log(d.items); return d.items.split(";").filter(function(d2){ if (d2 != "?") return parseInt(d2)}); })
+		.enter().append("svg:image")
+			.attr('x', function(d, i){ return i * 66})
+			.attr('y', 0)
+			.attr('width', 64)
+			.attr('height', 64)
+			.attr("xlink:href", function(d){ return itemsList[d].imageUrl });
+
+	imgs.on("mousemove", function(d){
+		displayTooltip([itemsList[d].name])
+	});
+	imgs.on("mouseout", function(d){ tooltip.classed('hidden', true); });
+
+	gItems.append("text")
+		.classed("percent", true)
+		.attr('x', function(d, i){ return 3 * 66 + 15})
+		.attr('y', function(d, i){ return 40 + i * 2 })
+		.style('fill', function(d){ return winRateScale(d.winfreq) })
+		.text(function(d){ return percentFormat(parseFloat(d.winfreq)) })
+
+
+	gItems.transition().duration(500).attr("transform", function(d, i){ return "translate(0, " + (i * 70 + 80) + ")" })
 }
 
 function updateHero(selectedHeroId){
@@ -215,14 +256,6 @@ function displayTooltip(list){
 	tooltip.classed('hidden', false)
         .attr('style', 'left:' + (mouse[0] + 60 + mainview.width) + 'px; top:' + (mouse[1] + 30) + 'px')
         .html("<table>" + htmlTxt + "</table>");
-}
-
-function hovered(hover) {
-	return function(d) {
-		d3.selectAll(d.ancestors().map(function(d) { return d.node; })).classed("node--hover", hover);
-
-		tooltip.classed('hidden', !hover);
-	};
 }
 
 function getTextWidth(text, fontSize, fontFace) {
