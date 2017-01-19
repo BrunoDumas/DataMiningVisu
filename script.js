@@ -31,7 +31,7 @@ var heroViewHeight = 100,
 		g: svgMainView.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 	},
 	heroesList = {},
-	abilitiesList = {}
+	capacitiesList = {}
 	itemsList = {};
 
 var winRateScale = d3.scaleQuantile()
@@ -71,25 +71,32 @@ function loadHeroData(heroId) {
 	updateHero(heroId);
 
 	d3.queue()
-		.defer(d3.csv, "data/heroes/" + heroId + "_items.csv")
-		.defer(d3.csv, "data/heroes/" + heroId + "_spells.csv")
+		.defer(d3.csv, "data/heroes/" + heroId + "_rare_items.csv")
+		.defer(d3.csv, "data/heroes/" + heroId + "_meta_items.csv")
+		.defer(d3.csv, "data/heroes/" + heroId + "_capacities.csv")
 		.await(heroDataReceived);
 }
 
-function heroDataReceived(error, items, spells) {
+function heroDataReceived(error, rareItems, metaItems, capacities) {
 	if (error){
-		display([], []);
+		display([], [], []);
 	} else {
-		var sortedItems = items.sort(function(a, b){ return b.total - a.total });
-		var selectedItems = sortedItems.slice(0, Math.min(sortedItems.length, 10));
-		selectedItems = selectedItems.sort(function(a, b){ return b.winfreq - a.winfreq });
-		selectedItems = selectedItems.slice(0, Math.min(selectedItems.length, 5));
-		// console.log(selectedItems);
-		display(selectedItems, spells);
+		var selectedRareItems = rareItems.sort(function(a, b){ return b.total - a.total });
+		selectedRareItems = selectedRareItems.slice(0, Math.min(selectedRareItems.length, 10));
+		selectedRareItems = selectedRareItems.sort(function(a, b){ return b.winfreq - a.winfreq });
+		selectedRareItems = selectedRareItems.slice(0, Math.min(selectedRareItems.length, 5));
+
+		var selectedMetaItems = metaItems.sort(function(a, b){ return b.winfreq - a.winfreq });
+		selectedMetaItems = selectedMetaItems.slice(0, Math.min(selectedMetaItems.length, 5));
+
+		var selectedCapacities = capacities.sort(function(a, b){ return b.freq - a.freq });
+		selectedCapacities = selectedCapacities.slice(0, Math.min(selectedCapacities.length, 3));
+
+		display(selectedRareItems, selectedMetaItems, selectedCapacities);
 	}
 }
 
-function processData(error, heroes, abilities, items){
+function processData(error, heroes, capacities, items){
     if (error) throw error;
 
 	heroes.forEach(function(d){
@@ -99,8 +106,8 @@ function processData(error, heroes, abilities, items){
 		}
 	});
 
-	abilities.forEach(function(d){
-		abilitiesList[d.ability_id] = {
+	capacities.forEach(function(d){
+		capacitiesList[d.ability_id] = {
 			name: d.ability_name,
 			imageUrl: "http://cdn.dota2.com/apps/dota2/images/abilities/" + d.ability_name + "_hp1.png"
 		};
@@ -153,18 +160,18 @@ function initialDisplay() {
 		.classed("title", true)
 		.attr("x", 0)
 		.attr("y", 60)
-		.text("Capacity builds")
+		.text("Current Meta")
 
 	mainview.g.append("text")
 		.classed("title", true)
 		.attr("x", 0)
 		.attr("y", 40)
-		.text("Rare but efficient builds")
+		.text("Anticipated Meta")
 }
 
-function display(items, spells) {
+function display(rareItems, metaItems, capacities) {
 	/* Capacities */
-	var spellsGs = capacitiesView.g.selectAll("g").data(spells);
+	var spellsGs = capacitiesView.g.selectAll("g").data(capacities);
 	var t = spellsGs.exit().transition().duration(500)
 	t.attr("transform", "translate(0, 1000)")
 	t.remove();
@@ -177,11 +184,11 @@ function display(items, spells) {
 			.attr('y', 0)
 			.attr('width', 64)
 			.attr('height', 64)
-			.attr("xlink:href", function(d){ return abilitiesList[d].imageUrl });
+			.attr("xlink:href", function(d){ return capacitiesList[d].imageUrl });
 
 	imgs.on("mousemove", function(d){
-		var ability = abilitiesList[d];
-		displayTooltip([ability.name])
+		var capacity = capacitiesList[d];
+		displayTooltip([capacity.name])
 	});
 	imgs.on("mouseout", function(d){ tooltip.classed('hidden', true); });
 
@@ -194,16 +201,16 @@ function display(items, spells) {
 
 	gSpells.transition().duration(500).attr("transform", function(d, i){ return "translate(0, " + (i * 70 + 80) + ")" })
 
-
-	/* Capacities */
-	var itemsGs = mainview.g.selectAll("g").data(items);
-	var t = itemsGs.exit().transition().duration(500)
+	/* Meta items */
+	var metaItemsGs = capacitiesView.g.selectAll("g.metaItemsContainer").data(metaItems);
+	var t = metaItemsGs.exit().transition().duration(500)
 	t.attr("transform", "translate(0, 1000)")
 	t.remove();
 
-	var gItems = itemsGs.enter().append("g")
-		.attr("transform", function(d, i){ return "translate(1000, " + (i * 70 + 80) + ")" })
-	var imgs = gItems.selectAll("image").data(function(d){ console.log(d.items); return d.items.split(";").filter(function(d2){ if (d2 != "?") return parseInt(d2)}); })
+	var gMetaItems = metaItemsGs.enter().append("g")
+		.classed("metaItemsContainer", true)
+		.attr("transform", function(d, i){ return "translate(-500, " + (i * 70 + 80 + 4 * 70) + ")" })
+	var imgs = gMetaItems.selectAll("image").data(function(d){ console.log(d.items); return d.items.split(";").filter(function(d2){ if (d2 != "?") return parseInt(d2)}); })
 		.enter().append("svg:image")
 			.attr('x', function(d, i){ return i * 66})
 			.attr('y', 0)
@@ -216,7 +223,39 @@ function display(items, spells) {
 	});
 	imgs.on("mouseout", function(d){ tooltip.classed('hidden', true); });
 
-	gItems.append("text")
+	gMetaItems.append("text")
+		.classed("percent", true)
+		.attr('x', function(d, i){ return 3 * 66 + 15})
+		.attr('y', function(d, i){ return 40 + i * 2 })
+		.text(function(d){ return percentFormat(parseFloat(d.winfreq)) })
+
+
+	gMetaItems.transition().duration(500).attr("transform", function(d, i){ return "translate(0, " + (i * 70 + 80 + 4 * 70) + ")" })
+
+
+	/* Rare items */
+	var rareItemsGs = mainview.g.selectAll("g.rareItemsContainer").data(rareItems);
+	var t = rareItemsGs.exit().transition().duration(500)
+	t.attr("transform", "translate(0, 1000)")
+	t.remove();
+
+	var gRareItems = rareItemsGs.enter().append("g")
+		.classed("rareItemsContainer", true)
+		.attr("transform", function(d, i){ return "translate(1000, " + (i * 70 + 80) + ")" })
+	var imgs = gRareItems.selectAll("image").data(function(d){ console.log(d.items); return d.items.split(";").filter(function(d2){ if (d2 != "?") return parseInt(d2)}); })
+		.enter().append("svg:image")
+			.attr('x', function(d, i){ return i * 66})
+			.attr('y', 0)
+			.attr('width', 64)
+			.attr('height', 64)
+			.attr("xlink:href", function(d){ return itemsList[d].imageUrl });
+
+	imgs.on("mousemove", function(d){
+		displayTooltip([itemsList[d].name])
+	});
+	imgs.on("mouseout", function(d){ tooltip.classed('hidden', true); });
+
+	gRareItems.append("text")
 		.classed("percent", true)
 		.attr('x', function(d, i){ return 3 * 66 + 15})
 		.attr('y', function(d, i){ return 40 + i * 2 })
@@ -224,7 +263,7 @@ function display(items, spells) {
 		.text(function(d){ return percentFormat(parseFloat(d.winfreq)) })
 
 
-	gItems.transition().duration(500).attr("transform", function(d, i){ return "translate(0, " + (i * 70 + 80) + ")" })
+	gRareItems.transition().duration(500).attr("transform", function(d, i){ return "translate(0, " + (i * 70 + 80) + ")" })
 }
 
 function updateHero(selectedHeroId){
