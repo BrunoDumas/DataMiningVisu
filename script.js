@@ -1,19 +1,20 @@
 /* Display setup */
+var margin = {top: 20, right: 20, bottom: 20, left: 20},
+	displayArea = getWindowSize(margin);
+displayArea = {width: Math.max(430, displayArea.width / 2), height: Math.max(500, displayArea.height)};
 var heroViewHeight = 150,
-	margin = {top: 20, right: 20, bottom: 20, left: 20},
-	displayArea = getWindowSize(margin),
 	body = d3.select("body"),
 	header = body.select("div#header"),
 	left = body.select("div#left"),
 	right = body.select("div#right"),
 	svgHeroView = header.append("svg")
-        .attr("width", displayArea.width - 10)
+        .attr("width", displayArea.width * 2 - 10)
         .attr("height", heroViewHeight),
     svgCapacitiesView = left.append("svg")
-        .attr("width", displayArea.width / 2 - 10)
+        .attr("width", displayArea.width - 10)
         .attr("height", displayArea.height - heroViewHeight),
 	svgMainView = right.append("svg")
-        .attr("width", displayArea.width / 2)
+        .attr("width", displayArea.width)
         .attr("height", displayArea.height - heroViewHeight),
 	heroView = {
 		width: svgHeroView.attr("width") - margin.left - margin.right,
@@ -152,7 +153,7 @@ function processData(error, heroes, capacities, items){
 
 function initialDisplay() {
 	heroView.g.append("image")
-		.attr('x', function(){ return displayArea.width - 500; })
+		.attr('x', function(){ return displayArea.width * 2 - 450; })
 		.attr('y', 0)
 		.attr("xlink:href", "header.png");
 
