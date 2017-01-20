@@ -1,5 +1,6 @@
 body {
-    background-color: rgb(23, 28, 35);
+    background-color: #000004;
+    /*background-color: rgb(23, 28, 35);*/
 }
 
 .tooltip {
@@ -15,6 +16,12 @@ body {
 
 .hidden {
     display: none;
+}
+
+#header {
+    margin: 0;
+    padding: 0;
+    display: block;
 }
 
 #right, #left {
@@ -34,6 +41,11 @@ body {
 
 text {
     fill: white;
+}
+
+text.rowHeader {
+    font-size: 17;
+    font-family: Georgia, Arial;
 }
 
 text.title {
