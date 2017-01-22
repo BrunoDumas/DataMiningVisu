@@ -214,12 +214,13 @@ function initialDisplay() {
 
 function display(rareItems, metaItems, capacities) {
 	/* Capacities */
-	var spellsGs = capacitiesView.g.selectAll("g").data(capacities);
+	var spellsGs = capacitiesView.g.selectAll("g.capacities").data(capacities);
 	var t = spellsGs.exit().transition().duration(500)
 	t.attr("transform", "translate(0, 1000)")
 	t.remove();
 
 	var gSpells = spellsGs.enter().append("g")
+		.classed("capacities", true)
 		.attr("transform", function(d, i){ return "translate(-500, " + (i * 70 + 105) + ")" })
 	var imgs = gSpells.selectAll("image").data(function(d){ return d.items.split(";").filter(function(d2){ if (d2 != "?") return parseInt(d2)}); })
 		.enter().append("svg:image")
