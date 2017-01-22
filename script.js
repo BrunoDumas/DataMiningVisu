@@ -81,7 +81,7 @@ function loadHeroData(heroId) {
 
 function heroDataReceived(error, rareItems, metaItems, capacities) {
 	if (error){
-		display([], [], []);
+		display(error, [], [], []);
 	} else {
 		var selectedRareItems = rareItems.sort(function(a, b){ return b.total - a.total });
 		selectedRareItems = selectedRareItems.slice(0, Math.min(selectedRareItems.length, 10));
@@ -94,7 +94,7 @@ function heroDataReceived(error, rareItems, metaItems, capacities) {
 		var selectedCapacities = capacities.sort(function(a, b){ return b.freq - a.freq });
 		selectedCapacities = selectedCapacities.slice(0, Math.min(selectedCapacities.length, 3));
 
-		display(selectedRareItems, selectedMetaItems, selectedCapacities);
+		display(error, selectedRareItems, selectedMetaItems, selectedCapacities);
 	}
 }
 
@@ -212,9 +212,9 @@ function initialDisplay() {
 		.text("Frequency")
 }
 
-function display(rareItems, metaItems, capacities) {
+function display(error, rareItems, metaItems, capacities) {
 	/* Capacities */
-	var spellsGs = capacitiesView.g.selectAll("g.capacities").data(capacities);
+	var spellsGs = capacitiesView.g.selectAll("g.capacities").data(capacities, function(d){return d.items;});
 	var t = spellsGs.exit().transition().duration(500)
 	t.attr("transform", "translate(0, 1000)")
 	t.remove();
@@ -246,7 +246,7 @@ function display(rareItems, metaItems, capacities) {
 	gSpells.transition().duration(500).attr("transform", function(d, i){ return "translate(50, " + (i * 70 + 105) + ")" })
 
 	/* Meta items */
-	var metaItemsGs = capacitiesView.g.selectAll("g.metaItemsContainer").data(metaItems);
+	var metaItemsGs = capacitiesView.g.selectAll("g.metaItemsContainer").data(metaItems, function(d){return d.items;});
 	var t = metaItemsGs.exit().transition().duration(500)
 	t.attr("transform", "translate(0, 1000)")
 	t.remove();
@@ -278,7 +278,7 @@ function display(rareItems, metaItems, capacities) {
 
 
 	/* Rare items */
-	var rareItemsGs = mainview.g.selectAll("g.rareItemsContainer").data(rareItems);
+	var rareItemsGs = mainview.g.selectAll("g.rareItemsContainer").data(rareItems, function(d){return d.items;});
 	var t = rareItemsGs.exit().transition().duration(500)
 	t.attr("transform", "translate(0, 1000)")
 	t.remove();
