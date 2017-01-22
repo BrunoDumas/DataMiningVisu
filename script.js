@@ -104,14 +104,14 @@ function processData(error, heroes, capacities, items){
 	heroes.forEach(function(d){
 		heroesList[d.hero_id] = {
 			name: d.localized_name,
-			imageUrl: "https://cdn.dota2.com/apps/dota2/images/heroes/" + d.name.substring(14) + "_full.png"
+			imageUrl: "http://cdn.dota2.com/apps/dota2/images/heroes/" + d.name.substring(14) + "_full.png"
 		}
 	});
 
 	capacities.forEach(function(d){
 		capacitiesList[d.ability_id] = {
 			name: d.ability_name,
-			imageUrl: "https://cdn.dota2.com/apps/dota2/images/abilities/" + d.ability_name + "_hp1.png"
+			imageUrl: "http://cdn.dota2.com/apps/dota2/images/abilities/" + d.ability_name + "_hp1.png"
 		};
 	});
 
