@@ -147,8 +147,8 @@ function processData(error, heroes, capacities, items){
 	        .attr("id", function (d) { return d.id; })
 	        .text(function (d) { return d.name; });
 
-	updateHero(1);
-	loadHeroData(1);
+	updateHero(2);
+	loadHeroData(2);
 }
 
 function initialDisplay() {
